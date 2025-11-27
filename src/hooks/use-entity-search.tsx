@@ -1,5 +1,6 @@
 import { pagination } from "@/config/constants";
-import { useState, useEffect } from "react";
+import { cn } from "@/lib/utils";
+import React, { useState, useEffect, ReactNode } from "react";
 
 interface UseEntitySearchProps<T extends { search: string; page: number }> {
   params: T;
