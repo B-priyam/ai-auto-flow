@@ -8,8 +8,26 @@ import {
 } from "@/trpc/init";
 import z, { positive } from "zod";
 import type { Edge, Node } from "@xyflow/react";
+import { inngest } from "@/inngest/client";
 
 export const workFlowsRouter = createTRPCRouter({
+  execute: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      const workflow = await prisma.workflow.findUniqueOrThrow({
+        where: {
+          id: input.id,
+          userId: ctx.auth.user.id,
+        },
+      });
+
+      await inngest.send({
+        name: "workflows/execute.workflow",
+        data: { workflowId: input.id },
+      });
+
+      return workflow;
+    }),
   create: premiumProcedure.mutation(({ ctx }) => {
     return prisma.workflow.create({
       data: {
@@ -45,7 +63,7 @@ export const workFlowsRouter = createTRPCRouter({
             type: z.string().nullish(),
             position: z.object({ x: z.number(), y: z.number() }),
             data: z.record(z.string(), z.any()).optional(),
-          })
+          }),
         ),
         edges: z.array(
           z.object({
@@ -53,9 +71,9 @@ export const workFlowsRouter = createTRPCRouter({
             target: z.string(),
             sourceHandle: z.string().nullish(),
             targetHandle: z.string().nullish(),
-          })
+          }),
         ),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const { edges, id, nodes } = input;
@@ -156,7 +174,7 @@ export const workFlowsRouter = createTRPCRouter({
           .max(pagination.MAX_PAGE_SIZE)
           .default(pagination.DEFAULT_PAGE_SIZE),
         search: z.string().default(""),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const { page, pageSize, search } = input;
