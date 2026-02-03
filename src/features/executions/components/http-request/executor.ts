@@ -1,9 +1,9 @@
 import type { NodeExecutor } from "@/features/executions/types";
 import { NonRetriableError } from "inngest";
-import ky from "ky";
-import Ky, { type Options as kyOptions } from "ky";
+import ky, { type Options as kyOptions } from "ky";
 
 type HttpRequestData = {
+  variableName?: string;
   endpoint?: string;
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: string;
@@ -18,6 +18,9 @@ export const HttpRequestExecutor: NodeExecutor<HttpRequestData> = async ({
   if (!data.endpoint) {
     throw new NonRetriableError("HTTP Request node: No endpoint configured");
   }
+  if (!data.variableName) {
+    throw new NonRetriableError("Variable name not configured");
+  }
 
   // const result = await step.fetch(data.endPoint);
 
@@ -28,9 +31,10 @@ export const HttpRequestExecutor: NodeExecutor<HttpRequestData> = async ({
     const options: kyOptions = { method };
 
     if (["POST", "PUT", "PATCH"].includes(method)) {
-      if (data.body) {
-        options.body = data.body;
-      }
+      options.body = data.body;
+      options.headers = {
+        "Content-Type": "application/json",
+      };
     }
 
     const response = await ky(endPoint, options);
@@ -39,13 +43,23 @@ export const HttpRequestExecutor: NodeExecutor<HttpRequestData> = async ({
       ? await response.json()
       : await response.text();
 
-    return {
-      ...context,
+    const responsePayload = {
       httpResponse: {
         status: response.status,
         statusText: response.statusText,
         data: responseData,
       },
+    };
+    if (data.variableName) {
+      return {
+        ...context,
+        [data.variableName]: responsePayload,
+      };
+    }
+
+    return {
+      ...context,
+      ...responsePayload,
     };
   });
 
