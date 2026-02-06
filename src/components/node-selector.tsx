@@ -31,6 +31,12 @@ const triggerNodes: NodeTypeOption[] = [
       "Runs the flow on clicking a button. Good for getting started quickly",
     icon: MousePointerIcon,
   },
+  {
+    type: NodeType.GOOGLE_FORM_TRIGGER,
+    label: "Google Form",
+    description: "Runs the flow when a google form is submitted",
+    icon: "/logos/googleform.svg",
+  },
 ];
 
 const executionNodes: NodeTypeOption[] = [
@@ -60,7 +66,7 @@ export function NodeSelector({
       if (selection.type === NodeType.MANUAL_TRIGGER) {
         const nodes = getNodes();
         const hasManualTrigger = nodes.some(
-          (node) => node.type === NodeType.MANUAL_TRIGGER
+          (node) => node.type === NodeType.MANUAL_TRIGGER,
         );
 
         if (hasManualTrigger) {
@@ -70,7 +76,7 @@ export function NodeSelector({
       }
       setNodes((nodes) => {
         const hasInitialTrigger = nodes.some(
-          (node) => node.type === NodeType.INITIAL
+          (node) => node.type === NodeType.INITIAL,
         );
 
         const centerX = window.innerWidth / 2;
@@ -97,7 +103,7 @@ export function NodeSelector({
 
       onOpenChange(false);
     },
-    [setNodes, getNodes, onOpenChange, screenToFlowPosition]
+    [setNodes, getNodes, onOpenChange, screenToFlowPosition],
   );
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
